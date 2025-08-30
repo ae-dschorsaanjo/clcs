@@ -48,6 +48,23 @@ the result should be `1`. The first operand in the second and third operation is
 + ans 2     (=>  1)
 ```
 
+The following operations are available:
+
+- `+`: Addition
+- `-`: Subtraction
+- `*`: Multiplication
+- `/`: Division
+- `\`: Integer division
+- `^`: Exponentiation
+- `%`: Modulo
+- `r`: Random number
+
+The following constants and values are available:
+
+- `pi`: π
+- `e`: e
+- `ans`: result of last expression ("answer")
+
 ## GUI
 
 A legends for additional functions is available by pressing `Esc`. Most functions are available by pressing `Alt` and various keys.
