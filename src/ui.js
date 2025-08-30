@@ -150,6 +150,24 @@ const cls = Object.freeze({
     help: "help"
 });
 
+const colorScheme = new (class Colors {
+    #current = null;
+    #available = new Set(["1", "2", "3"]);
+    constructor() {
+        this.setScheme("1");
+    }
+    setScheme(scheme) {
+        if (this.#current) {
+            document.documentElement.classList.remove(this.#current);
+        }
+        this.#current = `c${scheme}`;
+        document.documentElement.classList.add(this.#current);
+    }
+    get available() {
+        return this.#available;
+    }
+})();
+
 /** @type {HTMLDivElement} */
 const container = divBuilder(cls.io);
 
@@ -163,6 +181,9 @@ Alt +
       = | Increase font size
       + | 
       - : Decrease font size
+      1 : Color Scheme Classic
+      2 : Color Scheme Matrix
+      3 : Color Scheme Snow
       g : Open on GitHub
       r : Soft reset (may not work with
                       Nvidia GPUs)
@@ -193,7 +214,6 @@ function guiBuilder() {
     document.addEventListener('click', () => currentInput.focus());
 
     document.addEventListener('keydown', (e) => {
-        console.log(validInputs.toString());
         if (e.ctrlKey || e.metaKey) {
             return;
         }
@@ -214,7 +234,12 @@ function guiBuilder() {
                     container.removeChild(container.firstChild);
                 }
                 currentInput.innerHTML = "";
+                lastError = null;
             }
+            else if (colorScheme.available.has(e.key)) {
+                colorScheme.setScheme(e.key);
+            }
+            e.preventDefault();
             return;
         }
 
@@ -271,7 +296,6 @@ function guiBuilder() {
             return;
         }
         e.preventDefault();
-        console.log(validInputs.toString());
     });
 }
 

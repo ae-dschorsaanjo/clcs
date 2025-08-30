@@ -16,7 +16,9 @@
     --color-pink: #ff77a8;
     --color-peach: #ffccaa;
     --font-family: Anakron, Hack, 'Source Code Pro', monospace;
+}
 
+html, html.c1 {
     --color-background: var(--color-dark-grey);
     --color-color: var(--color-light-grey);
     --color-highlight: var(--color-dark-green);
@@ -24,13 +26,31 @@
     --color-highlight-selection: var(--color-red);
     --color-error: var(--color-dark-purple);
     --color-error-selection: var(--color-red);
-}
-
-html {
+    
     background-color: var(--color-background);
     color: var(--color-color);
     font-family: var(--font-family);
     box-sizing: border-box;
+}
+
+html.c2 {
+    --color-background: var(--color-black);
+    --color-color: var(--color-white);
+    --color-highlight: var(--color-green);
+    --color-selection: var(--color-indigo);
+    --color-highlight-selection: var(--color-brown);
+    --color-error: var(--color-red);
+    --color-error-selection: var(--color-dark-purple);
+}
+
+html.c3 {
+    --color-background: var(--color-light-grey);
+    --color-color: var(--color-black);
+    --color-highlight: var(--color-dark-green);
+    --color-selection: var(--color-pink);
+    --color-highlight-selection: var(--color-red);
+    --color-error: var(--color-dark-purple);
+    --color-error-selection: var(--color-red);
 }
 
 ::selection {

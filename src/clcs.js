@@ -91,6 +91,7 @@ const ans = new (class Ans {
     get value() { return this.#value; }
     set value(value) { this.#value = (unifiedRounding(value)); }
     get name() { return "ans"; }
+    valueOf() { return this.#value; }
 })();
 
 /**
@@ -99,18 +100,16 @@ const ans = new (class Ans {
 const consts = Object.freeze({
     "pi": Math.PI,
     "e": Math.E,
-    "ans": ans.value,
+    "ans": ans,
 });
 
 /**
  * @type {Set<string>}
  */
-const symbols = new Set(
-    [
+const symbols = new Set([
         ...Object.keys(ops),
         ...Object.keys(consts).flatMap(key => [...key])
-    ]
-);
+]);
 
 /**
  * A set of all symbols accepted by the calculator.
@@ -161,7 +160,7 @@ export function clcs(input) {
         }
 
         if (Object.hasOwn(consts, token)) {
-            token = consts[token];
+            token = toNumber(consts[token]);
         }
         else if (token === ans.name) {
             token = ans.value;
