@@ -71,6 +71,9 @@ const validInputs = new (class InputHistory {
     /** @type {string?} */
     #currentInput = null;
     /** @param {string} input */
+    constructor() {
+        this.resetHistory();
+    }
     add(input) {
         this.#currentIndex = null;
         const inputIndex = this.#inputs.indexOf(input);
@@ -126,6 +129,10 @@ const validInputs = new (class InputHistory {
         this.#currentIndex = null;
         this.#currentInput = null;
     }
+    resetHistory() {
+        this.#inputs = [ansResetter];
+        this.resetInput();
+    }
     toString() {
         return `currentIndex: ${this.#currentIndex}
 currentInput: "${this.#currentInput}"
@@ -155,6 +162,10 @@ Alt +
       + | 
       - : Decrease font size
       g : Open on GitHub
+      r : Soft reset (may not work with
+                      Nvidia GPUs)
+Ctrl + Shift +
+      r : Hard reset
 `);
 
 function toggleHelp(dryrun = false) {
@@ -193,6 +204,14 @@ function guiBuilder() {
             }
             else if (e.key === 'g') {
                 window.open('https://github.com/ae-dschorsaanjo/clcs', '_blank');
+            }
+            else if (e.key === 'r') {
+                validInputs.resetHistory();
+                resetAns();
+                while (container.childNodes.length > 1) {
+                    container.removeChild(container.firstChild);
+                }
+                currentInput.innerHTML = "";
             }
             return;
         }
