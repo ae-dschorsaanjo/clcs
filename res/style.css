@@ -1,0 +1,92 @@
+:root {
+    --color-black: #000000;
+    --color-dark-blue: #1d2b53;
+    --color-dark-purple: #7e2553;
+    --color-dark-green: #008751;
+    --color-brown: #ab5236;
+    --color-dark-grey: #5f574f;
+    --color-light-grey: #c2c3c7;
+    --color-white: #fff1e8;
+    --color-red: #ff004d;
+    --color-orange: #ffa300;
+    --color-yellow: #ffec27;
+    --color-green: #00e436;
+    --color-blue: #29adff;
+    --color-indigo: #83769c;
+    --color-pink: #ff77a8;
+    --color-peach: #ffccaa;
+    --font-family: Anakron, Hack, 'Source Code Pro', monospace;
+
+    --color-background: var(--color-dark-grey);
+    --color-color: var(--color-light-grey);
+    --color-highlight: var(--color-dark-green);
+    --color-selection: var(--color-pink);
+    --color-highlight-selection: var(--color-red);
+    --color-error: var(--color-dark-purple);
+    --color-error-selection: var(--color-red);
+}
+
+html {
+    background-color: var(--color-background);
+    color: var(--color-color);
+    font-family: var(--font-family);
+    box-sizing: border-box;
+}
+
+::selection {
+    color: var(--color-selection);
+}
+
+.hi::selection {
+    color: var(--color-highlight-selection);
+}
+
+.err::selection {
+    color: var(--color-error-selection);
+}
+
+body {
+    width: 100%;
+    max-width: min(40ch, 100vw);
+    margin: 0 auto;
+}
+
+.hi {
+    font-style: normal;
+    color: var(--color-highlight);
+}
+
+.err {
+    font-style: normal;
+    color: var(--color-error);
+}
+
+#main {
+    width: 100%;
+    max-height: 99.9vh;
+    margin: 0 auto;
+}
+
+.io, .help {
+    line-height: 1.11111111em;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    /* overflow: scroll;
+    scrollbar-width: none; */
+}
+
+.io::-webkit-scrollbar {
+    /* display: none; */
+}
+
+.input {
+    color: var(--color-color);
+}
+
+.input.current::after {
+    content: '¦'
+}
+
+.hidden {
+    display: none;
+}
