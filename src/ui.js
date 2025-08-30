@@ -156,6 +156,8 @@ const container = divBuilder(cls.io);
 const help = divBuilder([cls.help, cls.hidden], `The following keys have functions:
 
     Esc : Toggle help
+      ↑ : Previous input
+      ↓ : Next input
 
 Alt + 
       = | Increase font size
@@ -240,7 +242,7 @@ function guiBuilder() {
             try {
                 ans = clcs(inputStr);
             } catch (error) {
-                lastError = divBuilder(cls.result, error.message);
+                lastError = divBuilder(cls.error, error.message);
                 container.appendChild(lastError);
                 e.preventDefault();
                 return;
