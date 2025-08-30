@@ -16,10 +16,16 @@
  * @returns Random number in range [a, b] or [1, a] if b is undefined
  */
 function customRandom(a, b) {
+    a = Math.trunc(a);
     if (typeof b === "undefined") {
         b = a;
         a = 1;
     }
+    else {
+        b = Math.trunc(b);
+    }
+    if (a == b) return a;
+
     if (a > b) [a, b] = [b, a];
     return Math.floor(Math.random() * (b - a + 1)) + a;
 }
@@ -107,8 +113,8 @@ const consts = Object.freeze({
  * @type {Set<string>}
  */
 const symbols = new Set([
-        ...Object.keys(ops),
-        ...Object.keys(consts).flatMap(key => [...key])
+    ...Object.keys(ops),
+    ...Object.keys(consts).flatMap(key => [...key])
 ]);
 
 /**
