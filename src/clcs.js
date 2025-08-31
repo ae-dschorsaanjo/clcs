@@ -178,6 +178,15 @@ export function clcs(input) {
     }
 
     const result = ops[operator](...operands);
+
+    if (isNaN(result)) {
+        throw new NotationError("Invalid operands resulted in NaN!");
+    }
+    
+    if (!isFinite(result)) {
+        throw new NotationError("Invalid operands resulted in Infinity!");
+    }
+
     ans.value = result;
 
     return ans.value;
