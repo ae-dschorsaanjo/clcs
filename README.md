@@ -4,6 +4,8 @@
 
 clcs is a simple command line calculator with limited functionality.
 
+The logic is fully contained within [clcs.js](src/clcs.js) that can be reused at will. However, it does not contain any quality of life features, only code that is necessary for executing these calculations and storing the last result (as reusing its value is part of the "notation" itself).
+
 ## Syntax
 
 clcs uses a modified version of Polish Notation (PN), sometimes called Zolish Notation (ZN).
@@ -24,7 +26,7 @@ is equivalent to
 
 `1 + 2 + (3 - 4) + 5 + 6`.
 
-As a limitation of clcs's implementation, nested parentheses are currently supported, hence your inner expressions cannot themselves have inner exceptions inside. For example
+As a limitation of clcs's implementation, nested parentheses are currently **not** supported, hence your inner expressions cannot themselves have inner expressions inside. For example
 
 `+ 1 2 (- 3 (* 2 2)) 5 6`
 
@@ -32,7 +34,7 @@ is not a valid expression in clcs, but is would be valid in general ZN and would
 
 `1 + 2 + (3 - (2 * 2)) + 5 + 6`.
 
-While not part of ZN, operand-inferrance is recommended practice and part of the clcs implementation; if only one operand is provided, the result of the previous operation should be used as the expression's *first operand*. For example if we do the following calculations:
+While not part of ZN, operand-inference is recommended practice and part of the clcs implementation; if only one operand is provided, the result of the previous operation should be used as the expression's *first operand*. For example if we do the following calculations:
 
 ```
 + 1 2
@@ -67,7 +69,7 @@ The following constants and values are available:
 
 ## GUI
 
-A legends for additional functions is available by pressing `Esc`. Most functions are available by pressing `Alt` and various keys.
+A legend for additional functions is available by pressing `Esc`. Most functions are available by pressing `Alt` and various keys.
 
 Various color schemes are available:
 
