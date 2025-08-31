@@ -207,6 +207,11 @@ function toggleHelp(dryrun = false) {
     return hcl.contains(cls.hidden);
 }
 
+function scrollToBottom() {
+    document.body.scrollTop = document.body.scrollHeight;
+    document.documentElement.scrollTop = document.documentElement.scrollHeight;
+}
+
 function guiBuilder() {
     MAIN.appendChild(container);
     MAIN.appendChild(help);
@@ -218,13 +223,13 @@ function guiBuilder() {
     document.addEventListener('click', () => currentInput.focus());
 
     document.addEventListener('keydown', (e) => {
-        console.log(inputHistory.toString());
         if (e.ctrlKey || e.metaKey) {
             return;
         }
         else if (e.altKey) {
             if (e.key === "=" || e.key === "+") {
                 fontSize.increase();
+                scrollToBottom();
             }
             else if (e.key === "-") {
                 fontSize.decrease();
@@ -253,6 +258,7 @@ function guiBuilder() {
             lastError = null;
             if (!currentInput.textContent.endsWith(" ")) {
                 currentInput.appendChild(document.createTextNode(" "));
+                scrollToBottom();
             }
         }
 
@@ -274,6 +280,7 @@ function guiBuilder() {
             } catch (error) {
                 lastError = divBuilder(cls.error, error.message);
                 container.appendChild(lastError);
+                scrollToBottom();
                 e.preventDefault();
                 return;
             }
@@ -300,8 +307,8 @@ function guiBuilder() {
         else if (/^F\d{1,2}$/.test(e.key)) {
             return;
         }
-        console.log(inputHistory.toString());
         e.preventDefault();
+        scrollToBottom();
     });
 }
 
