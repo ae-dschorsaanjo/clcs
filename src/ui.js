@@ -263,7 +263,9 @@ function guiBuilder() {
         }
 
         if (usedSymbols.has(e.key)) {
-            currentInput.appendChild(document.createTextNode(e.key));
+            if (!(currentInput.textContent.endsWith(" ") && e.key === " ")) {
+                currentInput.appendChild(document.createTextNode(e.key));
+            }
         }
         else if (e.key === "Backspace") {
             const lastChild = currentInput.lastChild;
