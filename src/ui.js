@@ -63,7 +63,7 @@ let lastError = null;
  * @class A class to manage the history of user inputs.
  * 
  */
-const validInputs = new (class InputHistory {
+const inputHistory = new (class InputHistory {
     /** @type {string[]} */
     #inputs = [ansResetter];
     /** @type {number?} */
@@ -85,45 +85,49 @@ const validInputs = new (class InputHistory {
         }
         this.#inputs.push(input);
     }
+    /** @return {boolean} Whether currentIndex was set */
     #stepCommon(input) {
         if (this.#currentInput === null) {
             this.#currentInput = input || "";
         }
         if (this.#currentIndex === null) {
             this.#currentIndex = this.#inputs.length - 1;
+            return true;
         }
+        return false;
     }
     /**
      * @param {string} input Current live input
      * @returns {string}
      */
     previous(input) {
-        this.#stepCommon(input);
+        const didSet = this.#stepCommon(input);
 
-        const curr = this.#inputs[this.#currentIndex];
-        if (this.#currentIndex > 0) {
-            this.#currentIndex--;
+        if (didSet || this.#currentIndex === 0) {
+            return this.#inputs[this.#currentIndex];
         }
-        return curr;
+        return this.#inputs[--this.#currentIndex];
     }
     /** 
      * @param {string} input
      * @returns {string}
      */
     next(input) {
-        this.#stepCommon(input);
+        const didSet = this.#stepCommon(input);
 
-        const curr = this.#inputs[this.#currentIndex];
-        if (this.#currentIndex < this.#inputs.length - 1) {
-            this.#currentIndex++;
+        if (didSet) {
+            return this.#inputs[this.#currentIndex];
         }
-        else if (this.#currentIndex === this.#inputs.length - 1) {
+
+        if (this.#currentIndex === this.#inputs.length - 1) {
+            this.#currentIndex++;
             return this.#currentInput;
         }
-        else {
-            this.#currentIndex = this.#inputs.length - 1;
+        else if (this.#currentIndex >= this.#inputs.length) {
+            return this.#currentInput;
         }
-        return curr;
+
+        return this.#inputs[++this.#currentIndex];
     }
     resetInput() {
         this.#currentIndex = null;
@@ -214,6 +218,7 @@ function guiBuilder() {
     document.addEventListener('click', () => currentInput.focus());
 
     document.addEventListener('keydown', (e) => {
+        console.log(inputHistory.toString());
         if (e.ctrlKey || e.metaKey) {
             return;
         }
@@ -228,8 +233,8 @@ function guiBuilder() {
                 window.open('https://github.com/ae-dschorsaanjo/clcs', '_blank');
             }
             else if (e.key === 'r') {
-                validInputs.resetHistory();
-                resetAns();
+                inputHistory.resetHistory();
+                clcs(ansResetter);
                 while (container.childNodes.length > 1) {
                     container.removeChild(container.firstChild);
                 }
@@ -273,8 +278,8 @@ function guiBuilder() {
                 return;
             }
             container.appendChild(divBuilder(cls.result, ans));
-            validInputs.resetInput();
-            validInputs.add(inputStr);
+            inputHistory.resetInput();
+            inputHistory.add(inputStr);
             currentInput.classList.remove(cls.current);
             currentInput = divBuilder([cls.input, cls.current]);
             container.appendChild(currentInput);
@@ -282,12 +287,12 @@ function guiBuilder() {
         else if (e.key === "ArrowUp") {
             const inputStr = currentInput.textContent.trim();
             currentInput.innerHTML = "";
-            currentInput.appendChild(document.createTextNode(validInputs.previous(inputStr)));
+            currentInput.appendChild(document.createTextNode(inputHistory.previous(inputStr)));
         }
         else if (e.key === "ArrowDown") {
             const inputStr = currentInput.textContent.trim();
             currentInput.innerHTML = "";
-            currentInput.appendChild(document.createTextNode(validInputs.next(inputStr)));
+            currentInput.appendChild(document.createTextNode(inputHistory.next(inputStr)));
         }
         else if (e.key === "Escape") {
             toggleHelp();
@@ -295,6 +300,7 @@ function guiBuilder() {
         else if (/^F\d{1,2}$/.test(e.key)) {
             return;
         }
+        console.log(inputHistory.toString());
         e.preventDefault();
     });
 }
