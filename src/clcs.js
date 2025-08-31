@@ -145,7 +145,7 @@ export function clcs(input) {
     input = input.replace(",", ".").replace(/\s{2,}/g, " ").trim();
     if (input.length === 0) throw new NotationError("Empty input!");
 
-    input = input.replace(/\((.+?)\)/g, (match, p1) => clcs(p1));
+    input = input.replace(/\((.+?)\)/g, (_, p1) => clcs(p1));
     // TODO: add support for nested parentheses
 
     const tokens = input.split(" ");
@@ -166,10 +166,7 @@ export function clcs(input) {
         }
 
         if (Object.hasOwn(consts, token)) {
-            token = toNumber(consts[token]);
-        }
-        else if (token === ans.name) {
-            token = ans.value;
+            token = consts[token];
         }
         operands.push(toNumber(token, operator));
     }
