@@ -112,16 +112,15 @@ const consts = Object.freeze({
 /**
  * @type {Set<string>}
  */
-const symbols = new Set([
-    ...Object.keys(ops),
-    ...Object.keys(consts).flatMap(key => [...key])
-]);
+const symbols = new Set(Object.keys(ops));
 
 /**
  * A set of all symbols accepted by the calculator.
  * @type {Set<string>}
  */
-export const usedSymbols = symbols.union(new Set([
+export const usedSymbols = symbols.union(new Set(
+    Object.keys(consts).flatMap(key => [...key])
+)).union(new Set([
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
     ".", " ", "(", ")", //"[", "]", "{", "}", "<", ">"
 ]));
