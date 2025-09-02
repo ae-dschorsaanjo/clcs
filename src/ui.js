@@ -1,4 +1,4 @@
-import { ansResetter, clcs, usedSymbols } from "./clcs.js";
+import { ansResetter, clcs, operations, usedSymbols } from "./clcs.js";
 
 const MAIN = document.getElementById("main");
 
@@ -25,8 +25,8 @@ const fontSize = new (class {
     }
 })();
 
-/** @type {Array<string>?} */
-let verbose = null;
+/** @type {Boolean} */
+let useVerbose = null;
 
 /**
  * Creates a div with given content
@@ -217,6 +217,10 @@ function scrollToBottom() {
     document.documentElement.scrollTop = document.documentElement.scrollHeight;
 }
 
+function occurences(input, char) {
+    return [...input].filter(c => c === char).length;
+}
+
 function guiBuilder() {
     MAIN.appendChild(container);
     MAIN.appendChild(help);
@@ -250,9 +254,10 @@ function guiBuilder() {
                 }
                 currentInput.innerHTML = "";
                 lastError = null;
+                useVerbose = false;
             }
             else if (e.key === 'v') {
-                verbose = verbose ? null : [];
+                useVerbose = !useVerbose;
             }
             else if (colorScheme.available.has(e.key)) {
                 colorScheme.setScheme(e.key);
@@ -271,7 +276,20 @@ function guiBuilder() {
         }
 
         if (usedSymbols.has(e.key)) {
-            if (!(currentInput.textContent.endsWith(" ") && e.key === " ")) {
+            const citc = currentInput.textContent;
+            const noop = occurences(citc, "(");
+            const nocp = occurences(citc, ")");
+            console.log(`e.key: ${e.key}, noop: ${noop}, nocp: ${nocp}`);
+            if (
+                (e.key === " " && citc.endsWith(" "))
+                || (e.key === ")" && (noop <= nocp))
+                || (e.key === "(" && (noop !== nocp))
+                || (citc === "" && !operations.has(e.key))
+            ) {
+                e.preventDefault();
+                return;
+            }
+            else {
                 currentInput.appendChild(document.createTextNode(e.key));
             }
         }
@@ -286,15 +304,13 @@ function guiBuilder() {
             const inputStr = currentInput.textContent.trim();
             let ans;
             try {
-                ans = clcs(inputStr, verbose);
+                ans = clcs(inputStr, useVerbose ? [] : null);
                 if (typeof ans === "object") {
-                    verbose = ans.steps;
+                    ans.steps.forEach(step => container.appendChild(divBuilder(cls.verbose, step)));
                     ans = ans.result;
                 }
-                if (verbose) {
-                    verbose.forEach(step => container.appendChild(divBuilder(cls.verbose, step)));
-                }
-            } catch (error) {
+            }
+            catch (error) {
                 lastError = divBuilder(cls.error, error.message);
                 container.appendChild(lastError);
                 scrollToBottom();
@@ -311,12 +327,16 @@ function guiBuilder() {
         else if (e.key === "ArrowUp") {
             const inputStr = currentInput.textContent.trim();
             currentInput.innerHTML = "";
-            currentInput.appendChild(document.createTextNode(inputHistory.previous(inputStr)));
+            Array.from(inputHistory.previous(inputStr)).forEach(letter => {
+                currentInput.appendChild(document.createTextNode(letter));
+            });
         }
         else if (e.key === "ArrowDown") {
             const inputStr = currentInput.textContent.trim();
             currentInput.innerHTML = "";
-            currentInput.appendChild(document.createTextNode(inputHistory.next(inputStr)));
+            Array.from(inputHistory.next(inputStr)).forEach(letter => {
+                currentInput.appendChild(document.createTextNode(letter));
+            });
         }
         else if (e.key === "Escape") {
             toggleHelp();

@@ -52,11 +52,9 @@ function unifiedRounding(n, d = 3) {
  * @see {unifiedRounding}
  */
 function toNumber(input, token) {
-    try {
-        input = Number(input);
-    }
-    catch {
-        // disregard unparseable input
+    input = parseFloat(input);
+
+    if (isNaN(input)) {
         input = ["+", "-"].includes(token) ? 0 : 1;
     }
 
@@ -112,13 +110,13 @@ const consts = Object.freeze({
 /**
  * @type {Set<string>}
  */
-const symbols = new Set(Object.keys(ops));
+export const operations = new Set(Object.keys(ops));
 
 /**
  * A set of all symbols accepted by the calculator.
  * @type {Set<string>}
  */
-export const usedSymbols = symbols.union(new Set(
+export const usedSymbols = operations.union(new Set(
     Object.keys(consts).flatMap(key => [...key])
 )).union(new Set([
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
@@ -135,6 +133,12 @@ export class NotationError extends Error {
     }
 }
 
+function inputBuilder(operator, operands) {
+    return `${operator} ${operands.join(" ")}`;
+}
+
+const parentheses = new RegExp(/\((.+?)\)/g);
+
 /**
  * @param {string} input Input calculation. The function expects the input to only contain valid characters, and it only has minimal checks in place.
  * @param {Array<string>?} verbose If truthy, the function will return an object containing both the result and the step-by-step breakdown of the calculation.
@@ -145,65 +149,76 @@ export function clcs(input, verbose) {
     input = input.replace(",", ".").replace(/\s{2,}/g, " ").trim();
     if (input.length === 0) throw new NotationError("Empty input!");
 
-    input = input.replace(/\((.+?)\)/g, (_, p1) => clcs(p1, verbose));
-    // TODO: add support for nested parentheses
+    let m = input.match(parentheses);
+    if (m?.length > 0) {
+        m.forEach(match => {
+            const inner = match.startsWith("(") && match.endsWith(")")
+                ? match.slice(1, -1)
+                : match;
+            const innerResult = clcs(inner);
+            verbose?.push(inner);
+            input = input.replace(match, innerResult);
+        });
+    }
 
     const tokens = input.split(" ");
 
-    if (!symbols.has(tokens[0])) {
-        throw new NotationError(`Invalid symbol (${tokens[0]})!`);
-    }
-
-    const operator = tokens.shift();
-    const operands = [];
-
-    while (tokens.length > 0) {
-        let token = tokens.shift();
-
-        if (symbols.has(token)) {
-            operands.push(clcs(`${token} ${tokens.join(" ")}`));
-            break;
+        if (!operations.has(tokens[0])) {
+            throw new NotationError(`Invalid symbol (${tokens[0]})!`);
         }
 
-        if (Object.hasOwn(consts, token)) {
-            token = consts[token];
+        const operator = tokens.shift();
+        const operands = [];
+
+        while (tokens.length > 0) {
+            let token = tokens.shift();
+
+            if (operations.has(token)) {
+                const innerInput = inputBuilder(token, tokens);
+                verbose?.push(innerInput);
+                operands.push(clcs(innerInput));
+                break;
+            }
+
+            if (Object.hasOwn(consts, token)) {
+                token = consts[token];
+            }
+            operands.push(toNumber(token, operator));
         }
-        operands.push(toNumber(token, operator));
+
+        if (operands.length === 0) {
+            throw new NotationError("No valid operands found!");
+        }
+        else if (operands.length === 1) {
+            operands.unshift(ans.value);
+        }
+
+        const result = ops[operator](...operands);
+
+        if (isNaN(result)) {
+            throw new NotationError(`Invalid operands (${operands.join(", ")}) resulted in NaN!`);
+        }
+
+        if (!isFinite(result)) {
+            throw new NotationError(`Invalid operands (${operands.join(", ")}) resulted in Infinity!`);
+        }
+
+        ans.value = result;
+
+        if (verbose) {
+            verbose.push(inputBuilder(operator, operands));
+            return {
+                result: ans.value,
+                steps: verbose
+            };
+        }
+
+        return ans.value;
     }
 
-    if (operands.length === 0) {
-        throw new NotationError("No valid operands found!");
-    }
-    else if (operands.length === 1) {
-        operands.unshift(ans.value);
-    }
-
-    const result = ops[operator](...operands);
-
-    if (isNaN(result)) {
-        throw new NotationError("Invalid operands resulted in NaN!");
-    }
-    
-    if (!isFinite(result)) {
-        throw new NotationError("Invalid operands resulted in Infinity!");
-    }
-
-    ans.value = result;
-
-    if (verbose) {
-        verbose.push(`${operator} ${operands.join(" ")}`);
-        return {
-            result: ans.value,
-            steps: verbose
-        };
-    }
-
-    return ans.value;
-}
-
-/** 
- * A simple expression to reset `ans` to its original value.
- * This is needed due to the lack of a dedicated assignment operator.
- * The last value is read from `ansDefault`.
- */
-export const ansResetter = `+ (- 1 1) ${ansDefault}`;
+    /** 
+     * A simple expression to reset `ans` to its original value.
+     * This is needed due to the lack of a dedicated assignment operator.
+     * The last value is read from `ansDefault`.
+     */
+    export const ansResetter = `+ (- 1 1) ${ansDefault}`;
