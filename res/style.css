@@ -26,6 +26,7 @@ html, html.c1 {
     --color-highlight-selection: var(--color-red);
     --color-error: var(--color-dark-purple);
     --color-error-selection: var(--color-red);
+    --color-verbose: var(--color-indigo);
     
     background-color: var(--color-background);
     color: var(--color-color);
@@ -41,6 +42,7 @@ html.c2 {
     --color-highlight-selection: var(--color-brown);
     --color-error: var(--color-red);
     --color-error-selection: var(--color-dark-purple);
+    --color-verbose: var(--color-indigo);
 }
 
 html.c3 {
@@ -51,6 +53,7 @@ html.c3 {
     --color-highlight-selection: var(--color-red);
     --color-error: var(--color-dark-purple);
     --color-error-selection: var(--color-red);
+    --color-verbose: var(--color-indigo);
 }
 
 ::selection {
@@ -102,4 +105,8 @@ body {
 
 .hidden {
     display: none;
+}
+
+.verbose {
+    color: var(--color-verbose);
 }

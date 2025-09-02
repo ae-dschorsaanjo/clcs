@@ -25,6 +25,9 @@ const fontSize = new (class {
     }
 })();
 
+/** @type {Array<string>?} */
+let verbose = null;
+
 /**
  * Creates a div with given content
  * 
@@ -151,7 +154,8 @@ const cls = Object.freeze({
     result: "hi",
     error: "err",
     hidden: "hidden",
-    help: "help"
+    help: "help",
+    verbose: "verbose"
 });
 
 const colorScheme = new (class Colors {
@@ -189,6 +193,7 @@ Alt +
       2 : Color Scheme Matrix
       3 : Color Scheme Snow
       g : Open on GitHub
+      v : Toggle verbose mode
       r : Soft reset (may not work with
                       Nvidia GPUs)
 Ctrl + Shift +
@@ -246,6 +251,9 @@ function guiBuilder() {
                 currentInput.innerHTML = "";
                 lastError = null;
             }
+            else if (e.key === 'v') {
+                verbose = verbose ? null : [];
+            }
             else if (colorScheme.available.has(e.key)) {
                 colorScheme.setScheme(e.key);
             }
@@ -278,7 +286,14 @@ function guiBuilder() {
             const inputStr = currentInput.textContent.trim();
             let ans;
             try {
-                ans = clcs(inputStr);
+                ans = clcs(inputStr, verbose);
+                if (typeof ans === "object") {
+                    verbose = ans.steps;
+                    ans = ans.result;
+                }
+                if (verbose) {
+                    verbose.forEach(step => container.appendChild(divBuilder(cls.verbose, step)));
+                }
             } catch (error) {
                 lastError = divBuilder(cls.error, error.message);
                 container.appendChild(lastError);

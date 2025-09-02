@@ -137,14 +137,15 @@ export class NotationError extends Error {
 
 /**
  * @param {string} input Input calculation. The function expects the input to only contain valid characters, and it only has minimal checks in place.
- * @returns {number} The result of the calculation. It is also stored in `Ans`.
+ * @param {Array<string>?} verbose If truthy, the function will return an object containing both the result and the step-by-step breakdown of the calculation.
+ * @returns {number|Object{result: number, steps: Array<string>}} The result of the calculation. It is also stored in `Ans`. If verbose is truthy, the value is stored in an object containing the `result` and the `steps` to get it.
  * @throws {NotationError}
  */
-export function clcs(input) {
+export function clcs(input, verbose) {
     input = input.replace(",", ".").replace(/\s{2,}/g, " ").trim();
     if (input.length === 0) throw new NotationError("Empty input!");
 
-    input = input.replace(/\((.+?)\)/g, (_, p1) => clcs(p1));
+    input = input.replace(/\((.+?)\)/g, (_, p1) => clcs(p1, verbose));
     // TODO: add support for nested parentheses
 
     const tokens = input.split(" ");
@@ -188,6 +189,14 @@ export function clcs(input) {
     }
 
     ans.value = result;
+
+    if (verbose) {
+        verbose.push(`${operator} ${operands.join(" ")}`);
+        return {
+            result: ans.value,
+            steps: verbose
+        };
+    }
 
     return ans.value;
 }
