@@ -155,9 +155,9 @@ export function clcs(input, verbose) {
             const inner = match.startsWith("(") && match.endsWith(")")
                 ? match.slice(1, -1)
                 : match;
-            const innerResult = clcs(inner);
-            verbose?.push(inner);
-            input = input.replace(match, innerResult);
+            const innerResult = clcs(inner, verbose);
+            if (verbose) verbose = innerResult.steps;
+            input = input.replace(match, innerResult.result);
         });
     }
 
@@ -174,9 +174,9 @@ export function clcs(input, verbose) {
             let token = tokens.shift();
 
             if (operations.has(token)) {
-                const innerInput = inputBuilder(token, tokens);
-                verbose?.push(innerInput);
-                operands.push(clcs(innerInput));
+                const innerResult = clcs(inputBuilder(token, tokens), verbose);
+                if (verbose) verbose = innerResult.steps;
+                operands.push(innerResult.result);
                 break;
             }
 
