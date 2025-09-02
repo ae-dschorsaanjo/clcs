@@ -193,9 +193,10 @@ Alt +
       2 : Color Scheme Matrix
       3 : Color Scheme Snow
       g : Open on GitHub
-      v : Toggle verbose mode
       r : Soft reset (may not work with
                       Nvidia GPUs)
+      v : Toggle verbose mode
+      
 Ctrl + Shift +
       r : Hard reset
 `);
