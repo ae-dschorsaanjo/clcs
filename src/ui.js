@@ -287,6 +287,7 @@ function guiBuilder() {
             }
             else if (e.key === 'v') {
                 useVerbose = !useVerbose;
+                currentInput.classList.toggle(cls.verbose, useVerbose);
             }
             else if (colorScheme.available.has(e.key)) {
                 colorScheme.setScheme(e.key);
@@ -359,7 +360,9 @@ function guiBuilder() {
             inputHistory.resetInput();
             inputHistory.add(inputStr);
             currentInput.classList.remove(cls.current);
-            currentInput = divBuilder([cls.input, cls.current]);
+            const classes = [cls.input, cls.current];
+            if (useVerbose) classes.push(cls.verbose);
+            currentInput = divBuilder(classes);
             container.appendChild(currentInput);
         }
         else if (e.key === "ArrowUp") {
