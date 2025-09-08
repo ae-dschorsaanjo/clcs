@@ -176,7 +176,7 @@ export function clcs(input, verbose) {
             if (operations.has(token)) {
                 const innerResult = clcs(inputBuilder(token, tokens), verbose);
                 if (verbose) verbose = innerResult.steps;
-                operands.push(innerResult.result);
+                operands.push(innerResult.result ?? innerResult);
                 break;
             }
 
