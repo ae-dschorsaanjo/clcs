@@ -280,12 +280,12 @@ function guiBuilder() {
             const citc = currentInput.textContent;
             const noop = occurences(citc, "(");
             const nocp = occurences(citc, ")");
-            console.log(`e.key: ${e.key}, noop: ${noop}, nocp: ${nocp}`);
+            //console.log(`e.key: ${e.key}, noop: ${noop}, nocp: ${nocp}`);
             if (
                 (e.key === " " && citc.endsWith(" "))
-                || (e.key === ")" && (noop <= nocp))
-                || (e.key === "(" && (noop !== nocp))
-                || (citc === "" && !operations.has(e.key))
+                || ((e.key === ")") && (noop <= nocp))
+                || ((e.key === "(") && (noop !== nocp))
+                || (!operations.has(e.key) && (citc.endsWith("(") || (citc === "")))
             ) {
                 e.preventDefault();
                 return;
