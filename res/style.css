@@ -95,12 +95,16 @@ body {
     word-wrap: break-word;
 }
 
-.input {
+.input, .input.verbose {
     color: var(--color-color);
 }
 
 .input.current::after {
-    content: '¦'
+    content: '¦';
+}
+
+.input.current.verbose::after {
+    content: '|';
 }
 
 .hidden {
