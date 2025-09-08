@@ -157,7 +157,7 @@ export function clcs(input, verbose) {
                 : match;
             const innerResult = clcs(inner, verbose);
             if (verbose) verbose = innerResult.steps;
-            input = input.replace(match, innerResult.result);
+            input = input.replace(match, innerResult.result ?? innerResult);
         });
     }
 
