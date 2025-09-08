@@ -64,7 +64,6 @@ let lastError = null;
 
 /**
  * @class A class to manage the history of user inputs.
- * 
  */
 const inputHistory = new (class InputHistory {
     /** @type {string[]} */
@@ -77,6 +76,7 @@ const inputHistory = new (class InputHistory {
     constructor() {
         this.resetHistory();
     }
+    /** @param {string} input New input */
     add(input) {
         this.#currentIndex = null;
         const inputIndex = this.#inputs.indexOf(input);
@@ -147,6 +147,9 @@ inputs: ${this.#inputs.join(",\n        ")}`;
     }
 })();
 
+/**
+ * CSS class names
+ */
 const cls = Object.freeze({
     io: "io",
     input: "input",
@@ -179,6 +182,7 @@ const colorScheme = new (class Colors {
 /** @type {HTMLDivElement} */
 const container = divBuilder(cls.io);
 
+/** @type {HTMLDivElement} */
 const help = divBuilder([cls.help, cls.hidden], `The following keys have functions:
 
     Esc : Toggle help
@@ -201,14 +205,13 @@ Ctrl + Shift +
       r : Hard reset
 `);
 
-function toggleHelp(dryrun = false) {
+/** Toggles the help overlay. */
+function toggleHelp() {
     const ccl = container.classList;
     const hcl = help.classList;
-    if (!dryrun) {
-        ccl.toggle(cls.hidden);
-        if (ccl.contains(cls.hidden) === hcl.contains(cls.hidden)) {
-            hcl.toggle(cls.hidden);
-        }
+    ccl.toggle(cls.hidden);
+    if (ccl.contains(cls.hidden) === hcl.contains(cls.hidden)) {
+        hcl.toggle(cls.hidden);
     }
     return hcl.contains(cls.hidden);
 }
@@ -218,8 +221,31 @@ function scrollToBottom() {
     document.documentElement.scrollTop = document.documentElement.scrollHeight;
 }
 
+/**
+ * Counts the occurences of `char` in `input`.
+ * 
+ * If an empty string is given as `char`, the function will always return 0.
+ * 
+ * @param {string} input Haystack
+ * @param {string} char Needle (single character; if longer, only the first character is used)
+ * @returns {number}
+ */
 function occurences(input, char) {
+    if (char === "") return 0;
+    char = char.charAt(0);
     return [...input].filter(c => c === char).length;
+}
+
+/**
+ * Appends a new text node containing `str` to `currentInput` and scrolls to bottom.
+ * 
+ * @param {HTMLDivElement} currentInput 
+ * @param {string} str
+ */
+function appendTextNode(currentInput, str) {
+    if (str.length === 0) return;
+    currentInput.appendChild(document.createTextNode(str));
+    scrollToBottom();
 }
 
 function guiBuilder() {
@@ -233,9 +259,11 @@ function guiBuilder() {
     document.addEventListener('click', () => currentInput.focus());
 
     document.addEventListener('keydown', (e) => {
+        // Prevent overriding browser shortcuts
         if (e.ctrlKey || e.metaKey) {
             return;
         }
+        // Keyboard shortcuts
         else if (e.altKey) {
             if (e.key === "=" || e.key === "+") {
                 fontSize.increase();
@@ -263,6 +291,10 @@ function guiBuilder() {
             else if (colorScheme.available.has(e.key)) {
                 colorScheme.setScheme(e.key);
             }
+            // Prevent overriding (other than explicitly overriden) browser shortcuts
+            else {
+                return;
+            }
             e.preventDefault();
             return;
         }
@@ -270,17 +302,18 @@ function guiBuilder() {
         if (lastError !== null) {
             container.removeChild(lastError);
             lastError = null;
-            if (!currentInput.textContent.endsWith(" ")) {
-                currentInput.appendChild(document.createTextNode(" "));
-                scrollToBottom();
-            }
+            // if (!currentInput.textContent.endsWith(" ")) {
+            //     appendTextNode(currentInput, " ");
+            // }
         }
 
+        const citc = currentInput.textContent;
+        const noop = occurences(citc, "(");
+        const nocp = occurences(citc, ")");
+        let inputStr = citc.trim();
+
         if (usedSymbols.has(e.key)) {
-            const citc = currentInput.textContent;
-            const noop = occurences(citc, "(");
-            const nocp = occurences(citc, ")");
-            //console.log(`e.key: ${e.key}, noop: ${noop}, nocp: ${nocp}`);
+            // Prevent (most of the) invalid inputs
             if (
                 (e.key === " " && citc.endsWith(" "))
                 || ((e.key === ")") && (noop <= nocp))
@@ -291,7 +324,7 @@ function guiBuilder() {
                 return;
             }
             else {
-                currentInput.appendChild(document.createTextNode(e.key));
+                appendTextNode(currentInput, e.key);
             }
         }
         else if (e.key === "Backspace") {
@@ -302,9 +335,13 @@ function guiBuilder() {
             }
         }
         else if (e.key === "Enter") {
-            const inputStr = currentInput.textContent.trim();
             let ans;
             try {
+                if (noop > nocp) {
+                    const addText = ")".repeat(noop - nocp);
+                    inputStr += addText;
+                    appendTextNode(currentInput, addText);
+                }
                 ans = clcs(inputStr, useVerbose ? [] : null);
                 if (typeof ans === "object") {
                     ans.steps.forEach(step => container.appendChild(divBuilder(cls.verbose, step)));
@@ -326,26 +363,26 @@ function guiBuilder() {
             container.appendChild(currentInput);
         }
         else if (e.key === "ArrowUp") {
-            const inputStr = currentInput.textContent.trim();
             currentInput.innerHTML = "";
             Array.from(inputHistory.previous(inputStr)).forEach(letter => {
-                currentInput.appendChild(document.createTextNode(letter));
+                appendTextNode(currentInput, letter);
             });
         }
         else if (e.key === "ArrowDown") {
-            const inputStr = currentInput.textContent.trim();
             currentInput.innerHTML = "";
             Array.from(inputHistory.next(inputStr)).forEach(letter => {
-                currentInput.appendChild(document.createTextNode(letter));
+                appendTextNode(currentInput, letter);
             });
         }
         else if (e.key === "Escape") {
             toggleHelp();
         }
+        // Allow function keys
         else if (/^F\d{1,2}$/.test(e.key)) {
             return;
         }
         e.preventDefault();
+        // Probably redundant
         scrollToBottom();
     });
 }
