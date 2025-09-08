@@ -1,5 +1,5 @@
 /**
- * Command-Line Calculator [in Java]Script.
+ * Command-Line Calculator [in java]Script.
  * 
  * Copyright © 2025 ae-dschorsaanjo
  * 
