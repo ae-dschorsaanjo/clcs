@@ -328,6 +328,9 @@ function guiBuilder() {
                 appendTextNode(currentInput, e.key);
             }
         }
+        else if (e.key === "Tab") {
+            appendTextNode(currentInput, " ");
+        }
         else if (e.key === "Backspace") {
             const lastChild = currentInput.lastChild;
 
