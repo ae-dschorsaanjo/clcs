@@ -8,7 +8,7 @@ The logic is fully contained within [clcs.js](src/clcs.js) that can be reused at
 
 ## Syntax
 
-clcs uses a modified version of Polish Notation (PN), sometimes called Zolish Notation (ZN).
+clcs uses a modified version of Polish Notation (PN), sometimes called Zolish Notation (ZN); think of it as "lisp without the outermost and sometimes implied parentheses".
 
 Operators are followed by a number of operands (as opposed to PN where there is always two). This means, that nested expressions must be enclosed by parentheses, otherwise all of the remaining operands would be considered part of the inner expression. For example,
 
