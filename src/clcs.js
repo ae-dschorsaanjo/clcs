@@ -124,7 +124,7 @@ export const usedSymbols = operations.union(new Set(
     Object.keys(consts).flatMap(key => [...key])
 )).union(new Set([
     "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-    ".", " ", "(", ")", //"[", "]", "{", "}", "<", ">"
+    ".", ",", " ", "(", ")", //"[", "]", "{", "}", "<", ">"
 ]));
 
 export class NotationError extends Error {
