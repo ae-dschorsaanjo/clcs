@@ -207,7 +207,7 @@ const cls = Object.freeze({
 
 const colorScheme = new (class Colors {
     #current = null;
-    #available = new Set(["1", "2", "3"]);
+    #available = new Set(["1", "2", "3", "4"]);
     constructor() {
         this.setScheme("1");
     }
@@ -234,14 +234,14 @@ const help = divBuilder([cls.help, cls.hidden], `The following keys have functio
       ↓ : Next input
 
 Alt + 
-      = | Increase font size
-      + | 
+      = : Increase font size
       - : Decrease font size
       p : Increase precision
       o : Decrease precision
       1 : Color Scheme Classic
       2 : Color Scheme Matrix
       3 : Color Scheme Snow
+      4 : Color Scheme Wood
       g : Open on GitHub
       r : Soft reset (may not work with
                       Nvidia GPUs)

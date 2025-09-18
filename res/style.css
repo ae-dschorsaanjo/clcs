@@ -59,6 +59,17 @@ html.c3 {
     --color-verbose: var(--color-indigo);
 }
 
+html.c4 {
+    --color-background: var(--color-brown);
+    --color-color: var(--color-peach);
+    --color-highlight: var(--color-dark-blue);
+    --color-selection: var(--color-indigo);
+    --color-highlight-selection: var(--color-dark-green);
+    --color-error: var(--color-dark-purple);
+    --color-error-selection: var(--color-red);
+    --color-verbose: var(--color-indigo);
+}
+
 ::selection {
     color: var(--color-selection);
 }
