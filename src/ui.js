@@ -192,24 +192,97 @@ inputs: ${this.#inputs.join(",\n        ")}`;
 
 /**
  * CSS class names
+ * @type {Object<string, string>}
  */
 const cls = Object.freeze({
-    io: "io",
-    input: "input",
     current: "current",
     cursor: "cursor",
-    result: "hi",
     error: "err",
-    hidden: "hidden",
     help: "help",
-    verbose: "verbose"
+    result: "hi",
+    hidden: "hidden",
+    input: "input",
+    io: "io",
+    verbose: "verbose",
+});
+
+/**
+ * Represents a key with an associated name.
+ */
+class Key {
+    #key;
+    #name;
+    #display;
+    /**
+     * @param {string} key as understood by code.
+     * @param {string} name as displayed to user.
+     * @param {boolean} display on 3 characters (right aligned).
+     */
+    constructor(key, name, display = false) {
+        this.#key = key;
+        this.#name = name;
+        this.#display = display;
+    }
+
+    /**
+     * Gets the key value.
+     * @type {string}
+     */
+    get key() {
+        return this.#key;
+    }
+
+    /**
+     * Gets the name associated with the key.
+     * @type {string}
+     */
+    get name() {
+        if (this.#display) {
+            return this.#name.padStart(3, " ");
+        }
+        return this.#name;
+    }
+}
+
+/**
+ * Keyboard keys and names
+ * @type {Object<string, Key>}
+ */
+const keys = Object.freeze({
+    esc: new Key("Escape", "Esc", true),
+    up: new Key("ArrowUp", "↑", true),
+    down: new Key("ArrowDown", "↓", true),
+    tab: new Key("Tab", "Tab"),
+    enter: new Key("Enter", "Enter"),
+    backspace: new Key("Backspace", "Backspace"),
+    plus: new Key("+", "+", true),
+    minus: new Key("-", "-", true),
+    equal: new Key("=", "=", true),
+    p: new Key("p", "p", true),
+    o: new Key("o", "o", true),
+    one: new Key("1", "1", true),
+    two: new Key("2", "2", true),
+    three: new Key("3", "3", true),
+    four: new Key("4", "4", true),
+    g: new Key("g", "g", true),
+    r: new Key("r", "r", true),
+    v: new Key("v", "v", true),
+    ctrl: new Key("Control", "Ctrl"),
+    shift: new Key("Shift", "Shift"),
+    alt: new Key("Alt", "Alt"),
+    meta: new Key("Meta", "Meta"),
+    parOpen: new Key("(", "("),
+    parClose: new Key(")", ")"),
+    bar: new Key("|", "|"),
+    barBroken: new Key("¦", "¦"),
+    space: new Key(" ", "Space"),
 });
 
 const colorScheme = new (class Colors {
     #current = null;
-    #available = new Set(["1", "2", "3", "4"]);
+    #available = new Set([keys.one.key, keys.two.key, keys.three.key, keys.four.key]);
     constructor() {
-        this.setScheme("1");
+        this.setScheme(keys.one.key);
     }
     setScheme(scheme) {
         if (this.#current) {
@@ -229,26 +302,26 @@ const container = divBuilder(cls.io);
 /** @type {HTMLDivElement} */
 const help = divBuilder([cls.help, cls.hidden], `The following keys have functions:
 
-    Esc : Toggle help
-      ↑ : Previous input
-      ↓ : Next input
+    ${keys.esc.name} : Toggle help
+    ${keys.up.name} : Previous input
+    ${keys.down.name} : Next input
 
-Alt + 
-      = : Increase font size
-      - : Decrease font size
-      p : Increase precision
-      o : Decrease precision
-      1 : Color Scheme Classic
-      2 : Color Scheme Matrix
-      3 : Color Scheme Snow
-      4 : Color Scheme Wood
-      g : Open on GitHub
-      r : Soft reset (may not work with
+${keys.alt.name} + 
+    ${keys.equal.name} : Increase font size
+    ${keys.minus.name} : Decrease font size
+    ${keys.p.name} : Increase precision
+    ${keys.o.name} : Decrease precision
+    ${keys.one.name} : Color Scheme Classic
+    ${keys.two.name} : Color Scheme Matrix
+    ${keys.three.name} : Color Scheme Snow
+    ${keys.four.name} : Color Scheme Wood
+    ${keys.g.name} : Open on GitHub
+    ${keys.r.name} : Soft reset (may not work with
                       Nvidia GPUs)
-      v : Toggle verbose mode
-      
-Ctrl + Shift +
-      r : Hard reset
+    ${keys.v.name} : Toggle verbose mode
+
+${keys.ctrl.name} + ${keys.shift.name} +
+    ${keys.r.name} : Hard reset
 `);
 
 /** Toggles the help overlay. */
@@ -310,9 +383,9 @@ function classNumberUpdate(element, class_, possibles) {
 
 function getCursorChar(verbose) {
     if (verbose) {
-        return '|';
+        return keys.bar.key;
     }
-    return '¦';
+    return keys.barBroken.key
 }
 
 function guiBuilder() {
@@ -338,23 +411,23 @@ function guiBuilder() {
         }
         // Keyboard shortcuts
         else if (e.altKey) {
-            if (e.key === "=" || e.key === "+") {
+            if (e.key === keys.equal.key || e.key === keys.plus.key) {
                 fontSize.increase();
                 scrollToBottom();
             }
-            else if (e.key === "-") {
+            else if (e.key === keys.minus.key) {
                 fontSize.decrease();
             }
-            else if (e.key === "p") {
+            else if (e.key === keys.p.key) {
                 classNumberUpdate(cursor, precision.increase().toString(), precision.possibles);
             }
-            else if (e.key === "o") {
+            else if (e.key === keys.o.key) {
                 classNumberUpdate(cursor, precision.decrease().toString(), precision.possibles);
             }
-            else if (e.key === 'g') {
+            else if (e.key === keys.g.key) {
                 window.open('https://github.com/ae-dschorsaanjo/clcs', '_blank');
             }
-            else if (e.key === 'r') {
+            else if (e.key === keys.r.key) {
                 inputHistory.resetHistory();
                 clcs(ansResetter);
                 while (container.childNodes.length > 1) {
@@ -367,7 +440,7 @@ function guiBuilder() {
                 precision.reset();
                 classNumberUpdate(cursor, precision.className(precision.value), precision.possibles);
             }
-            else if (e.key === 'v') {
+            else if (e.key === keys.v.key) {
                 useVerbose = !useVerbose;
                 cursor.textContent = getCursorChar(useVerbose);
                 currentInput.classList.toggle(cls.verbose, useVerbose);
@@ -389,17 +462,17 @@ function guiBuilder() {
         }
 
         const citc = currentInput.textContent;
-        const noop = occurences(citc, "(");
-        const nocp = occurences(citc, ")");
+        const noop = occurences(citc, keys.parOpen.key);
+        const nocp = occurences(citc, keys.parClose.key);
         let inputStr = citc.trim();
 
         if (usedSymbols.has(e.key)) {
             // Prevent (most of the) invalid inputs
             if (
-                (e.key === " " && citc.endsWith(" "))
-                || ((e.key === ")") && (noop <= nocp))
-                || ((e.key === "(") && (noop !== nocp))
-                || (!operations.has(e.key) && (citc.endsWith("(") || (citc === "")))
+                (e.key === keys.space.key && citc.endsWith(keys.space.key))
+                || ((e.key === keys.parClose.key) && (noop <= nocp))
+                || ((e.key === keys.parOpen.key) && (noop !== nocp))
+                || (!operations.has(e.key) && (citc.endsWith(keys.parOpen.key) || (citc === "")))
             ) {
                 e.preventDefault();
                 return;
@@ -408,21 +481,25 @@ function guiBuilder() {
                 appendTextNode(currentInput, e.key);
             }
         }
-        else if (e.key === "Tab") {
-            appendTextNode(currentInput, " ");
+        else if (e.key === keys.tab.key) {
+            if (citc === "" || citc.endsWith(keys.space.key)) {
+                e.preventDefault();
+                return;
+            }
+            appendTextNode(currentInput, keys.space.key);
         }
-        else if (e.key === "Backspace") {
+        else if (e.key === keys.backspace.key) {
             const lastChild = currentInput.lastChild;
 
             if (lastChild) {
                 currentInput.removeChild(lastChild);
             }
         }
-        else if (e.key === "Enter") {
+        else if (e.key === keys.enter.key) {
             let ans;
             try {
                 if (noop > nocp) {
-                    const addText = ")".repeat(noop - nocp);
+                    const addText = keys.parClose.key.repeat(noop - nocp);
                     inputStr += addText;
                     appendTextNode(currentInput, addText);
                 }
@@ -448,19 +525,19 @@ function guiBuilder() {
             currentInput = divBuilder(classes);
             container.appendChildPreCursor(currentInput);
         }
-        else if (e.key === "ArrowUp") {
+        else if (e.key === keys.up.key) {
             currentInput.innerHTML = "";
             Array.from(inputHistory.previous(inputStr)).forEach(letter => {
                 appendTextNode(currentInput, letter);
             });
         }
-        else if (e.key === "ArrowDown") {
+        else if (e.key === keys.down.key) {
             currentInput.innerHTML = "";
             Array.from(inputHistory.next(inputStr)).forEach(letter => {
                 appendTextNode(currentInput, letter);
             });
         }
-        else if (e.key === "Escape") {
+        else if (e.key === keys.esc.key) {
             toggleHelp();
         }
         // Allow function keys
