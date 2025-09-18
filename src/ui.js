@@ -1,9 +1,9 @@
-import { ansResetter, clcs, operations, usedSymbols } from "./clcs.js";
+import { ansResetter, clcs, operations, precisionDefault, usedSymbols } from "./clcs.js";
 
 const MAIN = document.getElementById("main");
 
 function setFontSize(size) {
-    document.documentElement.style.fontSize = size + "px";
+    document.documentElement.style.setProperty('--font-size', size + "px");
     return size;
 }
 
@@ -13,15 +13,58 @@ function getFontSize() {
 
 const fontSize = new (class {
     #size = 2;
+    #fontBase = 12;
     constructor() {
-        setFontSize(this.#size * 12);
+        setFontSize(this.#size * this.#fontBase);
     }
     increase() {
-        return setFontSize(++this.#size * 12);
+        return setFontSize(++this.#size * this.#fontBase);
     }
     decrease() {
-        if (this.#size > 1) return setFontSize(--this.#size * 12);
+        if (this.#size > 1) return setFontSize(--this.#size * this.#fontBase);
         return getFontSize();
+    }
+    getOneSmaller() {
+        return this.#size > 1 ? (this.#size - 1) * this.#fontBase : this.#fontBase;
+    }
+})();
+
+const precision = new (class {
+    #precision = precisionDefault;
+    #precisionMinimum = 0;
+    #precisionMaximum = 9;
+    #precisionPossible = [];
+    constructor() {
+        for (let i = this.#precisionMinimum; i <= this.#precisionMaximum; i++) {
+            if (i === precisionDefault) continue;
+            this.#precisionPossible.push(this.className(i));
+        }
+    }
+    className(number) {
+        return `p${number}`;
+    }
+    get value() {
+        return this.#precision;
+    }
+    get minimum() {
+        return this.#precisionMinimum;
+    }
+    get maximum() {
+        return this.#precisionMaximum;
+    }
+    get possibles() {
+        return this.#precisionPossible;
+    }
+    increase() {
+        if (this.#precision < this.#precisionMaximum) this.#precision++;
+        return this.#precision;
+    }
+    decrease() {
+        if (this.#precision > this.#precisionMinimum) this.#precision--;
+        return this.#precision;
+    }
+    reset() {
+        this.#precision = precisionDefault;
     }
 })();
 
@@ -154,6 +197,7 @@ const cls = Object.freeze({
     io: "io",
     input: "input",
     current: "current",
+    cursor: "cursor",
     result: "hi",
     error: "err",
     hidden: "hidden",
@@ -193,6 +237,8 @@ Alt +
       = | Increase font size
       + | 
       - : Decrease font size
+      p : Increase precision
+      o : Decrease precision
       1 : Color Scheme Classic
       2 : Color Scheme Matrix
       3 : Color Scheme Snow
@@ -248,13 +294,40 @@ function appendTextNode(currentInput, str) {
     scrollToBottom();
 }
 
+/**
+ * 
+ * @param {HTMLDivElement} element 
+ * @param {string} class_ 
+ * @param {string[]} possibles 
+ */
+function classNumberUpdate(element, class_, possibles) {
+    element.classList.remove(...possibles);
+    class_ = precision.className(class_);
+    if (possibles.includes(class_)) {
+        element.classList.add(class_);
+    }
+}
+
+function getCursorChar(verbose) {
+    if (verbose) {
+        return '|';
+    }
+    return '¦';
+}
+
 function guiBuilder() {
     MAIN.appendChild(container);
     MAIN.appendChild(help);
 
     currentInput = divBuilder([cls.input, cls.current]);
 
-    container.appendChild(currentInput);
+    const cursor = divBuilder([cls.cursor], getCursorChar(useVerbose));
+    container.appendChild(cursor);
+
+    container.appendChildPreCursor = function (newNode) {
+        this.insertBefore(newNode, cursor);
+    }
+    container.appendChildPreCursor(currentInput);
 
     document.addEventListener('click', () => currentInput.focus());
 
@@ -272,6 +345,12 @@ function guiBuilder() {
             else if (e.key === "-") {
                 fontSize.decrease();
             }
+            else if (e.key === "p") {
+                classNumberUpdate(cursor, precision.increase().toString(), precision.possibles);
+            }
+            else if (e.key === "o") {
+                classNumberUpdate(cursor, precision.decrease().toString(), precision.possibles);
+            }
             else if (e.key === 'g') {
                 window.open('https://github.com/ae-dschorsaanjo/clcs', '_blank');
             }
@@ -284,9 +363,13 @@ function guiBuilder() {
                 currentInput.innerHTML = "";
                 lastError = null;
                 useVerbose = false;
+                cursor.textContent = getCursorChar(useVerbose);
+                precision.reset();
+                classNumberUpdate(cursor, precision.className(precision.value), precision.possibles);
             }
             else if (e.key === 'v') {
                 useVerbose = !useVerbose;
+                cursor.textContent = getCursorChar(useVerbose);
                 currentInput.classList.toggle(cls.verbose, useVerbose);
             }
             else if (colorScheme.available.has(e.key)) {
@@ -303,9 +386,6 @@ function guiBuilder() {
         if (lastError !== null) {
             container.removeChild(lastError);
             lastError = null;
-            // if (!currentInput.textContent.endsWith(" ")) {
-            //     appendTextNode(currentInput, " ");
-            // }
         }
 
         const citc = currentInput.textContent;
@@ -346,27 +426,27 @@ function guiBuilder() {
                     inputStr += addText;
                     appendTextNode(currentInput, addText);
                 }
-                ans = clcs(inputStr, useVerbose ? [] : null);
+                ans = clcs(inputStr, useVerbose ? [] : null, precision.value);
                 if (typeof ans === "object") {
-                    ans.steps.forEach(step => container.appendChild(divBuilder(cls.verbose, step)));
+                    ans.steps.forEach(step => container.appendChildPreCursor(divBuilder(cls.verbose, step)));
                     ans = ans.result;
                 }
             }
             catch (error) {
                 lastError = divBuilder(cls.error, error.message);
-                container.appendChild(lastError);
+                container.appendChildPreCursor(lastError);
                 scrollToBottom();
                 e.preventDefault();
                 return;
             }
-            container.appendChild(divBuilder(cls.result, ans));
+            container.appendChildPreCursor(divBuilder(cls.result, ans));
             inputHistory.resetInput();
             inputHistory.add(inputStr);
             currentInput.classList.remove(cls.current);
             const classes = [cls.input, cls.current];
             if (useVerbose) classes.push(cls.verbose);
             currentInput = divBuilder(classes);
-            container.appendChild(currentInput);
+            container.appendChildPreCursor(currentInput);
         }
         else if (e.key === "ArrowUp") {
             currentInput.innerHTML = "";

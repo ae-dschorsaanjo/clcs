@@ -30,6 +30,8 @@ function customRandom(a, b) {
     return Math.floor(Math.random() * (b - a + 1)) + a;
 }
 
+export const precisionDefault = 3;
+
 /**
  * Rounds a number to a specified number of decimal places.
  * Used internally to ensure consistent rounding.
@@ -38,7 +40,8 @@ function customRandom(a, b) {
  * @param {number} d Number of digits
  * @returns Rounded number
  */
-function unifiedRounding(n, d = 3) {
+function unifiedRounding(n, d = precisionDefault) {
+    if (d < 0) d = 0;
     const factor = 10 ** Math.trunc(d);
     return Math.round(n * factor) / factor;
 }
@@ -48,17 +51,18 @@ function unifiedRounding(n, d = 3) {
  * 
  * @param {any} input 
  * @param {string} token Last operator token
+ * @param {number} precision Number of decimal places
  * @returns {number}
  * @see {unifiedRounding}
  */
-function toNumber(input, token) {
+function toNumber(input, token, precision = precisionDefault) {
     input = parseFloat(input);
 
     if (isNaN(input)) {
         input = ["+", "-"].includes(token) ? 0 : 1;
     }
 
-    return unifiedRounding(input);
+    return unifiedRounding(input, precision);
 }
 
 /**
@@ -93,7 +97,7 @@ const ansDefault = 0;
 const ans = new (class Ans {
     #value = ansDefault;
     get value() { return this.#value; }
-    set value(value) { this.#value = (unifiedRounding(value)); }
+    set value(value) { this.#value = value; }
     get name() { return "ans"; }
     valueOf() { return this.#value; }
 })();
@@ -142,10 +146,11 @@ const parentheses = new RegExp(/\((.+?)\)/g);
 /**
  * @param {string} input Input calculation. The function expects the input to only contain valid characters, and it only has minimal checks in place.
  * @param {Array<string>?} verbose If truthy, the function will return an object containing both the result and the step-by-step breakdown of the calculation.
+ * @param {number} precision Number of decimal places to round to. Defaults to `precisionDefault`.
  * @returns {number|Object{result: number, steps: Array<string>}} The result of the calculation. It is also stored in `Ans`. If verbose is truthy, the value is stored in an object containing the `result` and the `steps` to get it.
  * @throws {NotationError}
  */
-export function clcs(input, verbose) {
+export function clcs(input, verbose, precision = precisionDefault) {
     input = input.replace(",", ".").replace(/\s{2,}/g, " ").trim();
     if (input.length === 0) throw new NotationError("Empty input!");
 
@@ -155,7 +160,7 @@ export function clcs(input, verbose) {
             const inner = match.startsWith("(") && match.endsWith(")")
                 ? match.slice(1, -1)
                 : match;
-            const innerResult = clcs(inner, verbose);
+            const innerResult = clcs(inner, verbose, precision);
             if (verbose) verbose = innerResult.steps;
             input = input.replace(match, innerResult.result ?? innerResult);
         });
@@ -174,7 +179,7 @@ export function clcs(input, verbose) {
             let token = tokens.shift();
 
             if (operations.has(token)) {
-                const innerResult = clcs(inputBuilder(token, tokens), verbose);
+                const innerResult = clcs(inputBuilder(token, tokens), verbose, precision);
                 if (verbose) verbose = innerResult.steps;
                 operands.push(innerResult.result ?? innerResult);
                 break;
@@ -183,7 +188,7 @@ export function clcs(input, verbose) {
             if (Object.hasOwn(consts, token)) {
                 token = consts[token];
             }
-            operands.push(toNumber(token, operator));
+            operands.push(toNumber(token, operator, precision));
         }
 
         if (operands.length === 0) {
@@ -203,7 +208,7 @@ export function clcs(input, verbose) {
             throw new NotationError(`Invalid operands (${operands.join(", ")}) resulted in Infinity!`);
         }
 
-        ans.value = result;
+        ans.value = unifiedRounding(result, precision);
 
         if (verbose) {
             verbose.push(inputBuilder(operator, operands));
