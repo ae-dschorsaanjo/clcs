@@ -80,7 +80,7 @@ function toNumber(input, token, precision = precisionDefault) {
 
     if (isNaN(parsedInput)) {
         throw new NumberError(`'${input}' is not a valid number!`);
-        parsedInput = ["+", "-"].includes(token) ? 0 : 1;
+        // parsedInput = ["+", "-"].includes(token) ? 0 : 1;
     }
 
     return unifiedRounding(parsedInput, precision);
@@ -137,16 +137,21 @@ const consts = Object.freeze({
  */
 export const operations = new Set(Object.keys(ops));
 
+const DIGITS = "0123456789";
+const SPECIAL_CHARS = ".,()";
+const WHITESPACE = " ";
+
 /**
  * A set of all symbols accepted by the calculator.
  * @type {Set<string>}
  */
-export const usedSymbols = operations.union(new Set(
-    Object.keys(consts).flatMap(key => [...key])
-)).union(new Set([
-    "0", "1", "2", "3", "4", "5", "6", "7", "8", "9",
-    ".", ",", " ", "(", ")", //"[", "]", "{", "}", "<", ">"
-]));
+export const usedSymbols = new Set([
+    ...Object.keys(ops),
+    ...Object.keys(consts).flatMap(key => [...key]),
+    ...DIGITS,
+    ...SPECIAL_CHARS,
+    WHITESPACE,
+]);
 
 function inputBuilder(operator, operands) {
     return `${operator} ${operands.join(" ")}`;
