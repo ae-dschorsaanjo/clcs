@@ -276,6 +276,13 @@ const keys = Object.freeze({
     bar: new Key("|", "|"),
     barBroken: new Key("¦", "¦"),
     space: new Key(" ", "Space"),
+    comma: new Key(",", ","),
+    period: new Key(".", "."),
+});
+
+const replaceKeys = Object.freeze({
+    [keys.comma.key]: keys.period.key,
+    [keys.tab.key]: keys.space.key,
 });
 
 const colorScheme = new (class Colors {
@@ -418,29 +425,31 @@ function guiBuilder() {
     document.addEventListener('click', () => currentInput.focus());
 
     document.addEventListener('keydown', (e) => {
+        const key = replaceKeys[e.key] || e.key;
+
         // Prevent overriding browser shortcuts
-        if (e.ctrlKey || e.metaKey || (e.shiftKey && e.key === keys.shift.key)) {
+        if (e.ctrlKey || e.metaKey || (e.shiftKey && key === keys.shift.key)) {
             return;
         }
         // Keyboard shortcuts
         else if (e.altKey) {
-            if (e.key === keys.equal.key || e.key === keys.plus.key) {
+            if (key === keys.equal.key || key === keys.plus.key) {
                 fontSize.increase();
                 scrollToBottom();
             }
-            else if (e.key === keys.minus.key) {
+            else if (key === keys.minus.key) {
                 fontSize.decrease();
             }
-            else if (e.key === keys.p.key) {
+            else if (key === keys.p.key) {
                 classNumberUpdate(cursor, precision.increase().toString(), precision.possibles);
             }
-            else if (e.key === keys.o.key) {
+            else if (key === keys.o.key) {
                 classNumberUpdate(cursor, precision.decrease().toString(), precision.possibles);
             }
-            else if (e.key === keys.g.key) {
+            else if (key === keys.g.key) {
                 window.open('https://github.com/ae-dschorsaanjo/clcs', '_blank');
             }
-            else if (e.key === keys.r.key) {
+            else if (key === keys.r.key) {
                 inputHistory.resetHistory();
                 clcs(ansResetter);
                 while (container.childNodes.length > 1) {
@@ -453,13 +462,13 @@ function guiBuilder() {
                 precision.reset();
                 classNumberUpdate(cursor, precision.className(precision.value), precision.possibles);
             }
-            else if (e.key === keys.v.key) {
+            else if (key === keys.v.key) {
                 useVerbose = !useVerbose;
                 cursor.textContent = getCursorChar(useVerbose);
                 currentInput.classList.toggle(cls.verbose, useVerbose);
             }
-            else if (colorScheme.available.has(e.key)) {
-                colorScheme.setScheme(e.key);
+            else if (colorScheme.available.has(key)) {
+                colorScheme.setScheme(key);
             }
             // Prevent overriding (other than explicitly overriden) browser shortcuts
             else {
@@ -480,11 +489,11 @@ function guiBuilder() {
         const nocp = occurences(citc, keys.parClose.key);
         let inputStr = citc.trim();
 
-        if (usedSymbols.has(e.key)) {
-            const doubleSpace = e.key === keys.space.key && citc.endsWith(keys.space.key);
-            const consecutiveParClose = (e.key === keys.parClose.key) && (noop <= nocp);
-            const nestedParOpen = (e.key === keys.parOpen.key) && (noop !== nocp);
-            const operationRequired = !operations.has(e.key) && (citc.endsWith(keys.parOpen.key) || (citc === ""));
+        if (usedSymbols.has(key)) {
+            const doubleSpace = key === keys.space.key && citc.endsWith(keys.space.key);
+            const consecutiveParClose = (key === keys.parClose.key) && (noop <= nocp);
+            const nestedParOpen = (key === keys.parOpen.key) && (noop !== nocp);
+            const operationRequired = !operations.has(key) && (citc.endsWith(keys.parOpen.key) || (citc === ""));
 
             // Prevent (most of the) invalid inputs with custom error messages
             let errorMsg = null;
@@ -507,24 +516,17 @@ function guiBuilder() {
                 return;
             }
             else {
-                appendTextNode(currentInput, e.key);
+                appendTextNode(currentInput, key);
             }
         }
-        else if (e.key === keys.tab.key) {
-            if (citc === "" || citc.endsWith(keys.space.key)) {
-                e.preventDefault();
-                return;
-            }
-            appendTextNode(currentInput, keys.space.key);
-        }
-        else if (e.key === keys.backspace.key) {
+        else if (key === keys.backspace.key) {
             const lastChild = currentInput.lastChild;
 
             if (lastChild) {
                 currentInput.removeChild(lastChild);
             }
         }
-        else if (e.key === keys.enter.key) {
+        else if (key === keys.enter.key) {
             let ans;
             try {
                 if (noop > nocp) {
@@ -552,23 +554,23 @@ function guiBuilder() {
             currentInput = divBuilder(classes);
             container.appendChildPreCursor(currentInput);
         }
-        else if (e.key === keys.up.key) {
+        else if (key === keys.up.key) {
             currentInput.innerHTML = "";
             Array.from(inputHistory.previous(inputStr)).forEach(letter => {
                 appendTextNode(currentInput, letter);
             });
         }
-        else if (e.key === keys.down.key) {
+        else if (key === keys.down.key) {
             currentInput.innerHTML = "";
             Array.from(inputHistory.next(inputStr)).forEach(letter => {
                 appendTextNode(currentInput, letter);
             });
         }
-        else if (e.key === keys.esc.key) {
+        else if (key === keys.esc.key) {
             toggleHelp();
         }
         // Allow function keys
-        else if (/^F\d{1,2}$/.test(e.key)) {
+        else if (/^F\d{1,2}$/.test(key)) {
             return;
         }
         e.preventDefault();
