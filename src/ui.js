@@ -388,6 +388,19 @@ function getCursorChar(verbose) {
     return keys.barBroken.key
 }
 
+function errorMessage(error) {
+    if (!error.message) return;
+
+    lastError = divBuilder(cls.error, error.message);
+    
+    if (currentInput.textContent === "") {
+        currentInput.classList.add(cls.hidden);
+    }
+    
+    container.appendChild(lastError);
+    scrollToBottom();
+}
+
 function guiBuilder() {
     MAIN.appendChild(container);
     MAIN.appendChild(help);
@@ -406,7 +419,7 @@ function guiBuilder() {
 
     document.addEventListener('keydown', (e) => {
         // Prevent overriding browser shortcuts
-        if (e.ctrlKey || e.metaKey) {
+        if (e.ctrlKey || e.metaKey || (e.shiftKey && e.key === keys.shift.key)) {
             return;
         }
         // Keyboard shortcuts
@@ -458,6 +471,7 @@ function guiBuilder() {
 
         if (lastError !== null) {
             container.removeChild(lastError);
+            currentInput.classList.remove(cls.hidden);
             lastError = null;
         }
 
@@ -467,13 +481,28 @@ function guiBuilder() {
         let inputStr = citc.trim();
 
         if (usedSymbols.has(e.key)) {
-            // Prevent (most of the) invalid inputs
-            if (
-                (e.key === keys.space.key && citc.endsWith(keys.space.key))
-                || ((e.key === keys.parClose.key) && (noop <= nocp))
-                || ((e.key === keys.parOpen.key) && (noop !== nocp))
-                || (!operations.has(e.key) && (citc.endsWith(keys.parOpen.key) || (citc === "")))
-            ) {
+            const doubleSpace = e.key === keys.space.key && citc.endsWith(keys.space.key);
+            const consecutiveParClose = (e.key === keys.parClose.key) && (noop <= nocp);
+            const nestedParOpen = (e.key === keys.parOpen.key) && (noop !== nocp);
+            const operationRequired = !operations.has(e.key) && (citc.endsWith(keys.parOpen.key) || (citc === ""));
+
+            // Prevent (most of the) invalid inputs with custom error messages
+            let errorMsg = null;
+            if (doubleSpace) {
+                errorMsg = " ";
+            }
+            else if (consecutiveParClose) {
+                errorMsg = "There are no open parentheses.";
+            }
+            else if (nestedParOpen) {
+                errorMsg = "Unmatched opening parenthesis exists.";
+            }
+            else if (operationRequired) {
+                errorMsg = "An operation is required.";
+            }
+
+            if (errorMsg) {
+                errorMessage({ message: errorMsg.trim() });
                 e.preventDefault();
                 return;
             }
@@ -510,9 +539,7 @@ function guiBuilder() {
                 }
             }
             catch (error) {
-                lastError = divBuilder(cls.error, error.message);
-                container.appendChildPreCursor(lastError);
-                scrollToBottom();
+                errorMessage(error);
                 e.preventDefault();
                 return;
             }

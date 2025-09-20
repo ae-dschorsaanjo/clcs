@@ -8,6 +8,26 @@
  * as published by Sam Hocevar. See http://www.wtfpl.net/ for more details.
  */
 
+class NotationError extends Error {
+    /**
+     * @param {string} message
+     */
+    constructor(message = "The given input is not valid notation!") {
+        super(message);
+        this.name = "NotationError";
+    }
+}
+
+class NumberError extends Error {
+    /**
+     * @param {string} message
+     */
+    constructor(message = "The given input is not a valid number!") {
+        super(message);
+        this.name = "NumberError";
+    }
+}
+
 /**
  * Random number generator
  * 
@@ -56,13 +76,14 @@ function unifiedRounding(n, d = precisionDefault) {
  * @see {unifiedRounding}
  */
 function toNumber(input, token, precision = precisionDefault) {
-    input = parseFloat(input);
+    let parsedInput = Number(input);
 
-    if (isNaN(input)) {
-        input = ["+", "-"].includes(token) ? 0 : 1;
+    if (isNaN(parsedInput)) {
+        throw new NumberError(`'${input}' is not a valid number!`);
+        parsedInput = ["+", "-"].includes(token) ? 0 : 1;
     }
 
-    return unifiedRounding(input, precision);
+    return unifiedRounding(parsedInput, precision);
 }
 
 /**
@@ -127,16 +148,6 @@ export const usedSymbols = operations.union(new Set(
     ".", ",", " ", "(", ")", //"[", "]", "{", "}", "<", ">"
 ]));
 
-export class NotationError extends Error {
-    /**
-     * @param {string} message
-     */
-    constructor(message = "The given input is not valid notation!") {
-        super(message);
-        this.name = "NotationError";
-    }
-}
-
 function inputBuilder(operator, operands) {
     return `${operator} ${operands.join(" ")}`;
 }
@@ -192,7 +203,7 @@ export function clcs(input, verbose, precision = precisionDefault) {
         }
 
         if (operands.length === 0) {
-            throw new NotationError("No valid operands found!");
+            throw new NotationError(`No valid operands found after '${operator}'!`);
         }
         else if (operands.length === 1) {
             operands.unshift(ans.value);
@@ -201,11 +212,11 @@ export function clcs(input, verbose, precision = precisionDefault) {
         const result = ops[operator](...operands);
 
         if (isNaN(result)) {
-            throw new NotationError(`Invalid operands (${operands.join(", ")}) resulted in NaN!`);
+            throw new NotationError(`Invalid operands ('${operands.join("', '")}') resulted in NaN!`);
         }
 
         if (!isFinite(result)) {
-            throw new NotationError(`Invalid operands (${operands.join(", ")}) resulted in Infinity!`);
+            throw new NotationError(`Invalid operands ('${operands.join("', '")}') resulted in Infinity!`);
         }
 
         ans.value = unifiedRounding(result, precision);
