@@ -452,7 +452,7 @@ function guiBuilder() {
             else if (key === keys.r.key) {
                 inputHistory.resetHistory();
                 clcs(ansResetter);
-                while (container.childNodes.length > 1) {
+                while (container.childNodes.length > 2) {
                     container.removeChild(container.firstChild);
                 }
                 currentInput.innerHTML = "";
