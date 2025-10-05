@@ -28,7 +28,7 @@ html, html.c1 {
     --color-error: var(--color-dark-purple);
     --color-error-selection: var(--color-red);
     --color-verbose: var(--color-indigo);
-    --font-size: var(--font-size);
+    --font-size: var(--base-font-size);
     
     background-color: var(--color-background);
     color: var(--color-color);

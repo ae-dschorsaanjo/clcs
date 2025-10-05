@@ -1,4 +1,4 @@
-import { ansResetter, clcs, operations, precisionDefault, usedSymbols } from "./clcs.js";
+import { ansResetter, clcs, OPERATIONS, precisionDefault, usedSymbols } from "./clcs.js";
 
 const MAIN = document.getElementById("main");
 
@@ -12,7 +12,7 @@ function getFontSize() {
 }
 
 const fontSize = new (class {
-    #size = 2;
+    #size = 3;
     #fontBase = 12;
     constructor() {
         setFontSize(this.#size * this.#fontBase);
@@ -493,7 +493,7 @@ function guiBuilder() {
             const doubleSpace = key === keys.space.key && citc.endsWith(keys.space.key);
             const consecutiveParClose = (key === keys.parClose.key) && (noop <= nocp);
             const nestedParOpen = (key === keys.parOpen.key) && (noop !== nocp);
-            const operationRequired = !operations.has(key) && (citc.endsWith(keys.parOpen.key) || (citc === ""));
+            const operationRequired = !OPERATIONS.has(key) && (citc.endsWith(keys.parOpen.key) || (citc === ""));
 
             // Prevent (most of the) invalid inputs with custom error messages
             let errorMsg = null;
