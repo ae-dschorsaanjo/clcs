@@ -135,7 +135,7 @@ const consts = Object.freeze({
 /**
  * @type {Set<string>}
  */
-export const operations = new Set(Object.keys(ops));
+export const OPERATIONS = new Set(Object.keys(ops));
 
 const DIGITS = "0123456789";
 const SPECIAL_CHARS = ".,()";
@@ -146,7 +146,7 @@ const WHITESPACE = " ";
  * @type {Set<string>}
  */
 export const usedSymbols = new Set([
-    ...Object.keys(ops),
+    ...OPERATIONS,
     ...Object.keys(consts).flatMap(key => [...key]),
     ...DIGITS,
     ...SPECIAL_CHARS,
@@ -184,7 +184,7 @@ export function clcs(input, verbose, precision = precisionDefault) {
 
     const tokens = input.split(" ");
 
-        if (!operations.has(tokens[0])) {
+        if (!OPERATIONS.has(tokens[0])) {
             throw new NotationError(`Invalid symbol (${tokens[0]})!`);
         }
 
@@ -194,7 +194,7 @@ export function clcs(input, verbose, precision = precisionDefault) {
         while (tokens.length > 0) {
             let token = tokens.shift();
 
-            if (operations.has(token)) {
+            if (OPERATIONS.has(token)) {
                 const innerResult = clcs(inputBuilder(token, tokens), verbose, precision);
                 if (verbose) verbose = innerResult.steps;
                 operands.push(innerResult.result ?? innerResult);
