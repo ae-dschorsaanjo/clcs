@@ -136,10 +136,9 @@ const consts = Object.freeze({
  * @type {Set<string>}
  */
 export const OPERATIONS = new Set(Object.keys(ops));
-
-const DIGITS = "0123456789";
-const SPECIAL_CHARS = ".,()";
-const WHITESPACE = " ";
+export const DIGITS = "0123456789";
+export const SPECIAL_CHARS = ".,()";
+export const WHITESPACE = " ";
 
 /**
  * A set of all symbols accepted by the calculator.
@@ -184,62 +183,62 @@ export function clcs(input, verbose, precision = precisionDefault) {
 
     const tokens = input.split(" ");
 
-        if (!OPERATIONS.has(tokens[0])) {
-            throw new NotationError(`Invalid symbol (${tokens[0]})!`);
-        }
-
-        const operator = tokens.shift();
-        const operands = [];
-
-        while (tokens.length > 0) {
-            let token = tokens.shift();
-
-            if (OPERATIONS.has(token)) {
-                const innerResult = clcs(inputBuilder(token, tokens), verbose, precision);
-                if (verbose) verbose = innerResult.steps;
-                operands.push(innerResult.result ?? innerResult);
-                break;
-            }
-
-            if (Object.hasOwn(consts, token)) {
-                token = consts[token];
-            }
-            operands.push(toNumber(token, operator, precision));
-        }
-
-        if (operands.length === 0) {
-            throw new NotationError(`No valid operands found after '${operator}'!`);
-        }
-        else if (operands.length === 1) {
-            operands.unshift(ans.value);
-        }
-
-        const result = ops[operator](...operands);
-
-        if (isNaN(result)) {
-            throw new NotationError(`Invalid operands ('${operands.join("', '")}') resulted in NaN!`);
-        }
-
-        if (!isFinite(result)) {
-            throw new NotationError(`Invalid operands ('${operands.join("', '")}') resulted in Infinity!`);
-        }
-
-        ans.value = unifiedRounding(result, precision);
-
-        if (verbose) {
-            verbose.push(inputBuilder(operator, operands));
-            return {
-                result: ans.value,
-                steps: verbose
-            };
-        }
-
-        return ans.value;
+    if (!OPERATIONS.has(tokens[0])) {
+        throw new NotationError(`Invalid symbol (${tokens[0]})!`);
     }
 
-    /** 
-     * A simple expression to reset `ans` to its original value.
-     * This is needed due to the lack of a dedicated assignment operator.
-     * The last value is read from `ansDefault`.
-     */
-    export const ansResetter = `+ (- 1 1) ${ansDefault}`;
+    const operator = tokens.shift();
+    const operands = [];
+
+    while (tokens.length > 0) {
+        let token = tokens.shift();
+
+        if (OPERATIONS.has(token)) {
+            const innerResult = clcs(inputBuilder(token, tokens), verbose, precision);
+            if (verbose) verbose = innerResult.steps;
+            operands.push(innerResult.result ?? innerResult);
+            break;
+        }
+
+        if (Object.hasOwn(consts, token)) {
+            token = consts[token];
+        }
+        operands.push(toNumber(token, operator, precision));
+    }
+
+    if (operands.length === 0) {
+        throw new NotationError(`No valid operands found after '${operator}'!`);
+    }
+    else if (operands.length === 1) {
+        operands.unshift(ans.value);
+    }
+
+    const result = ops[operator](...operands);
+
+    if (isNaN(result)) {
+        throw new NotationError(`Invalid operands ('${operands.join("', '")}') resulted in NaN!`);
+    }
+
+    if (!isFinite(result)) {
+        throw new NotationError(`Invalid operands ('${operands.join("', '")}') resulted in Infinity!`);
+    }
+
+    ans.value = unifiedRounding(result, precision);
+
+    if (verbose) {
+        verbose.push(inputBuilder(operator, operands));
+        return {
+            result: ans.value,
+            steps: verbose
+        };
+    }
+
+    return ans.value;
+}
+
+/** 
+ * A simple expression to reset `ans` to its original value.
+ * This is needed due to the lack of a dedicated assignment operator.
+ * The last value is read from `ansDefault`.
+ */
+export const ansResetter = `+ (- 1 1) ${ansDefault}`;

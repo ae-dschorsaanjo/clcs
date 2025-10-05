@@ -1,4 +1,4 @@
-import { ansResetter, clcs, OPERATIONS, precisionDefault, usedSymbols } from "./clcs.js";
+import { ansResetter, clcs, DIGITS, OPERATIONS, precisionDefault, usedSymbols } from "./clcs.js";
 
 const MAIN = document.getElementById("main");
 
@@ -399,11 +399,11 @@ function errorMessage(error) {
     if (!error.message) return;
 
     lastError = divBuilder(cls.error, error.message);
-    
+
     if (currentInput.textContent === "") {
         currentInput.classList.add(cls.hidden);
     }
-    
+
     container.appendChild(lastError);
     scrollToBottom();
 }
@@ -423,6 +423,8 @@ function guiBuilder() {
     container.appendChildPreCursor(currentInput);
 
     document.addEventListener('click', () => currentInput.focus());
+
+    const AFTER_DIGIT_OK = [...DIGITS, keys.parClose.key, keys.period.key, keys.comma.key];
 
     document.addEventListener('keydown', (e) => {
         const key = replaceKeys[e.key] || e.key;
@@ -485,6 +487,7 @@ function guiBuilder() {
         }
 
         const citc = currentInput.textContent;
+        const lastChar = citc.length > 0 ? citc[citc.length - 1] : "";
         const noop = occurences(citc, keys.parOpen.key);
         const nocp = occurences(citc, keys.parClose.key);
         let inputStr = citc.trim();
@@ -494,6 +497,11 @@ function guiBuilder() {
             const consecutiveParClose = (key === keys.parClose.key) && (noop <= nocp);
             const nestedParOpen = (key === keys.parOpen.key) && (noop !== nocp);
             const operationRequired = !OPERATIONS.has(key) && (citc.endsWith(keys.parOpen.key) || (citc === ""));
+            const spaceRequired = citc.length && key !== keys.space.key
+                && ((OPERATIONS.has(lastChar)
+                    && (citc.length === 1 || (lastChar !== keys.minus.key || !DIGITS.includes(key))))
+                    || (DIGITS.includes(lastChar) && !AFTER_DIGIT_OK.includes(key))
+                    || (lastChar === keys.parClose.key));
 
             // Prevent (most of the) invalid inputs with custom error messages
             let errorMsg = null;
@@ -508,6 +516,11 @@ function guiBuilder() {
             }
             else if (operationRequired) {
                 errorMsg = "An operation is required.";
+            }
+
+            if (spaceRequired) {
+                inputStr += " ";
+                appendTextNode(currentInput, " ");
             }
 
             if (errorMsg) {
