@@ -169,6 +169,10 @@ export function clcs(input, verbose, precision = precisionDefault) {
     input = input.replace(",", ".").replace(/\s{2,}/g, " ").trim();
     if (input.length === 0) throw new NotationError("Empty input!");
 
+    input = input.split(" ").map(token =>
+        token === ans.name ? ans.value.toString() : token
+    ).join(" ");
+
     let m = input.match(parentheses);
     if (m?.length > 0) {
         m.forEach(match => {

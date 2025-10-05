@@ -34,7 +34,7 @@ is not a valid expression in clcs, but is would be valid in general ZN and would
 
 `1 + 2 + (3 - (2 * 2)) + 5 + 6`.
 
-While not part of ZN, operand-inference is recommended practice and part of the clcs implementation; if only one operand is provided, the result of the previous operation should be used as the expression's *first operand*. For example if we do the following calculations:
+While not a mandatory part of ZN, operand-inference is a recommended practice and part of the clcs implementation; if only one operand is provided, the result of the previous operation should be used as the expression's *first operand*. For example if we do the following calculations:
 
 ```
 + 1 2
@@ -48,6 +48,38 @@ the result should be `1`. The first operand in the second and third operation is
 + 1 2       (=>  3)
 - ans 4     (=> -1)
 + ans 2     (=>  1)
+```
+
+However, when `ans` is *explicitly given* in an expression, it will be first evaluated to mean the last expression's result and will not be updated to the last calculation's result. For example, if the last result was `0`, then the evaluation would go like this:
+
+```
++ (- 1 1) 0
+- 1 1       (=> 0)
++ 0 0       (=> 0)
+0
+
++ - (* 2 5) + ans 6
+* 2 5       (=> 10)
++ 0 6       (=>  6)
+- 10 6      (=>  4)
++ 4 4       (=>  8)
+8
+```
+
+and not:
+
+```
++ (- 1 1) 0
+- 1 1       (=> 0)
++ 0 0       (=> 0)
+0
+
++ - (* 2 5) + 6
+* 2 5       (=>  10)
++ 10 6      (=>  16)
+- 10 16     (=>  -6)
++ -6 -6     (=> -12)
+-12
 ```
 
 The following operations are available:
