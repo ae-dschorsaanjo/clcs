@@ -580,7 +580,10 @@ function guiBuilder() {
             });
         }
         else if (key === keys.esc.key) {
-            toggleHelp();
+            if (toggleHelp()) {
+                e.preventDefault();
+                return;
+            }
         }
         // Allow function keys
         else if (/^F\d{1,2}$/.test(key)) {
