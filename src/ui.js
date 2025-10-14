@@ -331,7 +331,10 @@ ${keys.ctrl.name} + ${keys.shift.name} +
     ${keys.r.name} : Hard reset
 `);
 
-/** Toggles the help overlay. */
+/**
+ * Toggles the help overlay.
+ * @returns {boolean} True if help is visible, false otherwise.
+ */
 function toggleHelp() {
     const ccl = container.classList;
     const hcl = help.classList;
@@ -339,7 +342,12 @@ function toggleHelp() {
     if (ccl.contains(cls.hidden) === hcl.contains(cls.hidden)) {
         hcl.toggle(cls.hidden);
     }
-    return hcl.contains(cls.hidden);
+    return ccl.contains(cls.hidden);
+}
+
+function scrollToTop() {
+    document.body.scrollTop = 0;
+    document.documentElement.scrollTop = 0;
 }
 
 function scrollToBottom() {
@@ -581,16 +589,20 @@ function guiBuilder() {
         }
         else if (key === keys.esc.key) {
             if (toggleHelp()) {
-                e.preventDefault();
-                return;
+                scrollToTop();
             }
+            else {
+                scrollToBottom();
+            }
+            // [scrollToBottom, scrollToTop][+toggleHelp()]();
+            e.preventDefault();
+            return;
         }
         // Allow function keys
         else if (/^F\d{1,2}$/.test(key)) {
             return;
         }
         e.preventDefault();
-        // Probably redundant
         scrollToBottom();
     });
 }
