@@ -29,14 +29,18 @@ class NumberError extends Error {
 }
 
 /**
- * Random number generator
- * 
+ * Generates a random integer between
+ * - `[a, b]` if both params are defined,
+ * - `[1, a]` if only `a` is defined,
+ * - `[0, 1]` if both are undefined.
+ *
  * @param {number} a Min or max (if b is undefined)
  * @param {number} b Max (optional)
- * @returns Random number in range [a, b] or [1, a] if b is undefined
+ * @returns {number}
  */
 function customRandom(a, b) {
-    a = Math.trunc(a);
+    a = Math.trunc(a) || 0;
+
     if (typeof b === "undefined") {
         b = a;
         a = 1;
@@ -47,9 +51,11 @@ function customRandom(a, b) {
     if (a == b) return a;
 
     if (a > b) [a, b] = [b, a];
+
     return Math.floor(Math.random() * (b - a + 1)) + a;
 }
 
+/** Default number of decimal places. */
 export const precisionDefault = 3;
 
 /**
@@ -107,6 +113,7 @@ const ops = Object.freeze({
     "r": (a, ...args) => args.reduce((acc, curr) => customRandom(acc, curr), a)
 });
 
+/** Default value of `ans`. */
 const ansDefault = 0;
 
 /**
@@ -156,9 +163,15 @@ function inputBuilder(operator, operands) {
     return `${operator} ${operands.join(" ")}`;
 }
 
+/**
+ * Regular expression to match parentheses.
+ * @type {RegExp}
+ */
 const parentheses = new RegExp(/\((.+?)\)/g);
 
 /**
+ * The main function of clcs to parse and evaluate calculations.
+ * 
  * @param {string} input Input calculation. The function expects the input to only contain valid characters, and it only has minimal checks in place.
  * @param {Array<string>?} verbose If truthy, the function will return an object containing both the result and the step-by-step breakdown of the calculation.
  * @param {number} precision Number of decimal places to round to. Defaults to `precisionDefault`.

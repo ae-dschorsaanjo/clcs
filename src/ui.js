@@ -2,15 +2,27 @@ import { ansResetter, clcs, DIGITS, OPERATIONS, precisionDefault, usedSymbols } 
 
 const MAIN = document.getElementById("main");
 
+/** Reads the font size from the `documentElement`'s `--font-size` variable to `size` pixels. */
 function setFontSize(size) {
     document.documentElement.style.setProperty('--font-size', size + "px");
     return size;
 }
 
+/** Reads the font size from the `documentElement`'s `font-size` property (which is set by the `--font-size` variable).
+ * @returns {number} Font size in relative units.
+ * @see setFontSize
+ * @see fontSize
+*/
 function getFontSize() {
     return parseFloat(getComputedStyle(document.documentElement).fontSize) / 12;
 }
 
+/**
+ * Manages the font size of the calculator UI.
+ * 
+ * @property {number} size Current font size in relative units.
+ * @property {number} fontBase Base font size in pixels.
+ */
 const fontSize = new (class {
     #size = 3;
     #fontBase = 12;
@@ -29,6 +41,7 @@ const fontSize = new (class {
     }
 })();
 
+/** Manages the precision (number of decimal places) of the calculator UI. */
 const precision = new (class {
     #precision = precisionDefault;
     #precisionMinimum = 0;
@@ -68,11 +81,14 @@ const precision = new (class {
     }
 })();
 
-/** @type {Boolean} */
+/** 
+ * Whether to use verbose output or not.
+ * @type {Boolean}
+ */
 let useVerbose = null;
 
 /**
- * Creates a div with given content
+ * Creates a div with given text content.
  * 
  * @param {string|string[]} class_ 
  * @param {any} content 
@@ -106,9 +122,9 @@ let currentInput;
 let lastError = null;
 
 /**
- * @class A class to manage the history of user inputs.
+ * A class to manage the history of user inputs.
  */
-const inputHistory = new (class InputHistory {
+const inputHistory = new (class {
     /** @type {string[]} */
     #inputs = [ansResetter];
     /** @type {number?} */
@@ -280,11 +296,13 @@ const keys = Object.freeze({
     period: new Key(".", "."),
 });
 
+/** Key replacement map. */
 const replaceKeys = Object.freeze({
     [keys.comma.key]: keys.period.key,
     [keys.tab.key]: keys.space.key,
 });
 
+/** Manages the color scheme of the calculator UI. */
 const colorScheme = new (class Colors {
     #current = null;
     #available = new Set([keys.one.key, keys.two.key, keys.three.key, keys.four.key]);
@@ -303,10 +321,16 @@ const colorScheme = new (class Colors {
     }
 })();
 
-/** @type {HTMLDivElement} */
+/**
+ * The main container for input and output.
+ * @type {HTMLDivElement}
+ */
 const container = divBuilder(cls.io);
 
-/** @type {HTMLDivElement} */
+/**
+ * Static help overlay.
+ * @type {HTMLDivElement}
+ */
 const help = divBuilder([cls.help, cls.hidden], `The following keys have functions:
 
     ${keys.esc.name} : Toggle help
@@ -383,12 +407,13 @@ function appendTextNode(currentInput, str) {
 }
 
 /**
+ * Updates the class of an element based on the current precision.
  * 
  * @param {HTMLDivElement} element 
  * @param {string} class_ 
  * @param {string[]} possibles 
  */
-function classNumberUpdate(element, class_, possibles) {
+function precisionNumberUpdate(element, class_, possibles) {
     element.classList.remove(...possibles);
     class_ = precision.className(class_);
     if (possibles.includes(class_)) {
@@ -396,6 +421,12 @@ function classNumberUpdate(element, class_, possibles) {
     }
 }
 
+/**
+ * Returns the appropriate cursor character.
+ * 
+ * @param {boolean} verbose Whether verbose mode is active
+ * @returns {string} Cursor character to be used
+ */
 function getCursorChar(verbose) {
     if (verbose) {
         return keys.bar.key;
@@ -403,6 +434,11 @@ function getCursorChar(verbose) {
     return keys.barBroken.key
 }
 
+/**
+ * Displays an error message in the UI.
+ * 
+ * @param {Error} error The message to display.
+ */
 function errorMessage(error) {
     if (!error.message) return;
 
@@ -451,10 +487,10 @@ function guiBuilder() {
                 fontSize.decrease();
             }
             else if (key === keys.p.key) {
-                classNumberUpdate(cursor, precision.increase().toString(), precision.possibles);
+                precisionNumberUpdate(cursor, precision.increase().toString(), precision.possibles);
             }
             else if (key === keys.o.key) {
-                classNumberUpdate(cursor, precision.decrease().toString(), precision.possibles);
+                precisionNumberUpdate(cursor, precision.decrease().toString(), precision.possibles);
             }
             else if (key === keys.g.key) {
                 window.open('https://github.com/ae-dschorsaanjo/clcs', '_blank');
@@ -470,7 +506,7 @@ function guiBuilder() {
                 useVerbose = false;
                 cursor.textContent = getCursorChar(useVerbose);
                 precision.reset();
-                classNumberUpdate(cursor, precision.className(precision.value), precision.possibles);
+                precisionNumberUpdate(cursor, precision.className(precision.value), precision.possibles);
             }
             else if (key === keys.v.key) {
                 useVerbose = !useVerbose;
